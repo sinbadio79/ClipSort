@@ -21,8 +21,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Configuration du SDK Android
-        uses: android-actions/setup-android@v3
+      - name: Accepter les licences SDK et installer la plateforme 35
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Configuration de Gradle
         uses: gradle/actions/setup-gradle@v4

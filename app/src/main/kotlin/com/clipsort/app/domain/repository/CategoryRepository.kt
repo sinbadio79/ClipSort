@@ -14,6 +14,8 @@ interface CategoryRepository {
 
     fun observeCategories(): Flow<List<Category>>
 
+    suspend fun getCategoryById(categoryId: Long): Category?
+
     suspend fun createCategory(name: String, colorHex: String): Category
 
     suspend fun deleteCategory(categoryId: Long)

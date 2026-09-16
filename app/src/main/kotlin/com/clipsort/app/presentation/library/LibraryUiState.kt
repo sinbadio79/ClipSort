@@ -4,5 +4,11 @@ import com.clipsort.app.domain.model.CategoryWithCount
 
 data class LibraryUiState(
     val categories: List<CategoryWithCount> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isCreateDialogOpen: Boolean = false,
+    val newCategoryName: String = "",
+    val categoryPendingDeletion: CategoryWithCount? = null,
+    val categoryPendingRename: CategoryWithCount? = null,
+    val renameText: String = "",
+    val errorMessage: String? = null
 )

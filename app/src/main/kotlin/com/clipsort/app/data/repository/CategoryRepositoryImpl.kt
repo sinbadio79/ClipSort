@@ -22,6 +22,9 @@ class CategoryRepositoryImpl @Inject constructor(
     override fun observeCategories(): Flow<List<Category>> =
         categoryDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
+    override suspend fun getCategoryById(categoryId: Long): Category? =
+        categoryDao.getById(categoryId)?.toDomain()
+
     override suspend fun createCategory(name: String, colorHex: String): Category {
         val category = Category(name = name, colorHex = colorHex, createdAt = System.currentTimeMillis())
         val generatedId = categoryDao.insert(category.toEntity())

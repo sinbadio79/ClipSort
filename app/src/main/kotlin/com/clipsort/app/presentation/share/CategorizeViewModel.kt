@@ -50,10 +50,32 @@ class CategorizeViewModel @Inject constructor(
         _uiState.update { it.copy(comment = comment) }
     }
 
-    fun onCreateCategory(name: String) {
+    fun onCreateCategoryClicked() {
+        _uiState.update { it.copy(isCreatingCategory = true, newCategoryName = "") }
+    }
+
+    fun onNewCategoryNameChanged(name: String) {
+        _uiState.update { it.copy(newCategoryName = name) }
+    }
+
+    fun onCancelCreateCategory() {
+        _uiState.update { it.copy(isCreatingCategory = false, newCategoryName = "") }
+    }
+
+    fun onConfirmCreateCategory() {
+        val name = _uiState.value.newCategoryName
         viewModelScope.launch {
             createCategoryUseCase(name)
-                .onSuccess { category -> onCategorySelected(category.id) }
+                .onSuccess { category ->
+                    _uiState.update {
+                        it.copy(
+                            selectedCategoryId = category.id,
+                            isCreatingCategory = false,
+                            newCategoryName = "",
+                            errorMessage = null
+                        )
+                    }
+                }
                 .onFailure { error -> _uiState.update { it.copy(errorMessage = error.message) } }
         }
     }

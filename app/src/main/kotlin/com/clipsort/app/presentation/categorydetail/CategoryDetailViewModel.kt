@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.clipsort.app.domain.model.Clip
 import com.clipsort.app.domain.model.ClipStatus
 import com.clipsort.app.domain.repository.ClipRepository
+import com.clipsort.app.domain.usecase.GetCategoryByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class CategoryDetailUiState(
+    val categoryName: String = "",
     val clips: List<Clip> = emptyList(),
     val isLoading: Boolean = true
 )
@@ -22,7 +24,8 @@ data class CategoryDetailUiState(
 @HiltViewModel
 class CategoryDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val clipRepository: ClipRepository
+    private val clipRepository: ClipRepository,
+    private val getCategoryByIdUseCase: GetCategoryByIdUseCase
 ) : ViewModel() {
 
     private val categoryId: Long = checkNotNull(savedStateHandle["categoryId"])
@@ -31,6 +34,10 @@ class CategoryDetailViewModel @Inject constructor(
     val uiState: StateFlow<CategoryDetailUiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            val category = getCategoryByIdUseCase(categoryId)
+            _uiState.update { it.copy(categoryName = category?.name.orEmpty()) }
+        }
         viewModelScope.launch {
             clipRepository.observeClipsByCategory(categoryId).collect { clips ->
                 _uiState.update { it.copy(clips = clips, isLoading = false) }

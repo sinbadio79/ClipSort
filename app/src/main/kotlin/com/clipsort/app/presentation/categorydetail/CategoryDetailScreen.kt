@@ -17,7 +17,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -106,7 +106,7 @@ private fun ClipCard(
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Text(text = clip.sourceApp.name, style = MaterialTheme.typography.labelSmall)
                 Icon(
-                    imageVector = if (clip.status == ClipStatus.WATCHED) Icons.Default.CheckCircle else Icons.Default.PlayCircle,
+                    imageVector = if (clip.status == ClipStatus.WATCHED) Icons.Default.CheckCircle else Icons.Default.PlayArrow,
                     contentDescription = null,
                     tint = if (clip.status == ClipStatus.WATCHED) Color(0xFF1D9E75) else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(0.dp)

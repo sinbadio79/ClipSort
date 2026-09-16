@@ -10,7 +10,7 @@ import com.clipsort.app.data.local.entity.ClipEntity
 @Database(
     entities = [CategoryEntity::class, ClipEntity::class],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao

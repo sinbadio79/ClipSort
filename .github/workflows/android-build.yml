@@ -35,20 +35,27 @@ jobs:
 
       - name: Configuration de Gradle
         uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: '8.9'
 
       - name: Tests unitaires et intégration Room
-        run: gradle testDebugUnitTest --stacktrace
+        run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Lint Android
-        run: gradle lintDebug --stacktrace
+        run: ./gradlew lintDebug --stacktrace
 
       - name: Construire l'APK debug
-        run: gradle assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --stacktrace
 
       - name: Construire la version release avec R8
-        run: gradle assembleRelease --stacktrace
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Vérifier que les schémas Room sont versionnés
+        run: |
+          changes=$(git status --porcelain -- app/schemas)
+          if [ -n "$changes" ]; then
+            echo "Les schémas générés diffèrent des schémas versionnés :"
+            echo "$changes"
+            exit 1
+          fi
 
       - name: Rapports de vérification et schémas Room
         if: always()

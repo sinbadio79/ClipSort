@@ -2,14 +2,21 @@ name: Android CI
 
 on:
   push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout du code
@@ -31,11 +38,28 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Lancer les tests unitaires
-        run: gradle test --stacktrace
+      - name: Tests unitaires et intégration Room
+        run: gradle testDebugUnitTest --stacktrace
+
+      - name: Lint Android
+        run: gradle lintDebug --stacktrace
 
       - name: Construire l'APK debug
         run: gradle assembleDebug --stacktrace
+
+      - name: Construire la version release avec R8
+        run: gradle assembleRelease --stacktrace
+
+      - name: Rapports de vérification et schémas Room
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: verification-reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+            app/schemas/
+          retention-days: 14
 
       - name: Publier l'APK comme artefact téléchargeable
         uses: actions/upload-artifact@v6

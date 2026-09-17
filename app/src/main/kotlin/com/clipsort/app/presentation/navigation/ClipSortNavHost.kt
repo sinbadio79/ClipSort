@@ -23,10 +23,14 @@ fun ClipSortNavHost(navController: NavHostController = rememberNavController()) 
     NavHost(navController = navController, startDestination = Routes.LIBRARY) {
         composable(Routes.LIBRARY) {
             LibraryScreen(
+                onBrowseClips = { navController.navigate("clips") { launchSingleTop = true } },
                 onCategoryClick = { categoryId ->
                     navController.navigate(Routes.categoryDetail(categoryId))
                 }
             )
+        }
+        composable("clips") {
+            CategoryDetailScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = Routes.CATEGORY_DETAIL,

@@ -3,6 +3,7 @@ package com.clipsort.app.presentation.library
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.clipsort.app.domain.model.CategoryWithCount
+import com.clipsort.app.domain.repository.ClipRepository
 import com.clipsort.app.domain.usecase.CreateCategoryUseCase
 import com.clipsort.app.domain.usecase.DeleteCategoryUseCase
 import com.clipsort.app.domain.usecase.GetCategoriesWithCountUseCase
@@ -12,12 +13,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     getCategoriesWithCountUseCase: GetCategoriesWithCountUseCase,
+    clipRepository: ClipRepository,
     private val createCategoryUseCase: CreateCategoryUseCase,
     private val renameCategoryUseCase: RenameCategoryUseCase,
     private val deleteCategoryUseCase: DeleteCategoryUseCase
@@ -28,8 +32,12 @@ class LibraryViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getCategoriesWithCountUseCase().collect { categories ->
-                _uiState.update { it.copy(categories = categories, isLoading = false) }
+            combine(getCategoriesWithCountUseCase(), clipRepository.observeAllClips()) { categories, clips ->
+                categories to clips
+            }.catch { error ->
+                _uiState.update { it.copy(isLoading = false, errorMessage = error.message) }
+            }.collect { (categories, clips) ->
+                _uiState.update { it.copy(categories = categories, clips = clips, isLoading = false) }
             }
         }
     }
@@ -95,7 +103,8 @@ class LibraryViewModel @Inject constructor(
         val target = _uiState.value.categoryPendingDeletion ?: return
         viewModelScope.launch {
             deleteCategoryUseCase(target.category.id)
-            _uiState.update { it.copy(categoryPendingDeletion = null) }
+                .onSuccess { _uiState.update { it.copy(categoryPendingDeletion = null, categoryPendingRename = null) } }
+                .onFailure { error -> _uiState.update { it.copy(errorMessage = error.message) } }
         }
     }
 

@@ -33,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.clipsort.app.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.clipsort.app.domain.model.Clip
 import com.clipsort.app.domain.model.ClipStatus
@@ -48,7 +50,7 @@ fun CategoryDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.categoryName) },
+                title = { Text(uiState.categoryName.ifEmpty { stringResource(R.string.all_clips) }) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Retour")

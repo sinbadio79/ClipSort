@@ -28,18 +28,19 @@ class CategoryDetailViewModel @Inject constructor(
     private val getCategoryByIdUseCase: GetCategoryByIdUseCase
 ) : ViewModel() {
 
-    private val categoryId: Long = checkNotNull(savedStateHandle["categoryId"])
+    private val categoryId: Long? = savedStateHandle["categoryId"]
 
     private val _uiState = MutableStateFlow(CategoryDetailUiState())
     val uiState: StateFlow<CategoryDetailUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            val category = getCategoryByIdUseCase(categoryId)
+            val category = categoryId?.let { getCategoryByIdUseCase(it) }
             _uiState.update { it.copy(categoryName = category?.name.orEmpty()) }
         }
         viewModelScope.launch {
-            clipRepository.observeClipsByCategory(categoryId).collect { clips ->
+            val clipsFlow = categoryId?.let { clipRepository.observeClipsByCategory(it) } ?: clipRepository.observeAllClips()
+            clipsFlow.collect { clips ->
                 _uiState.update { it.copy(clips = clips, isLoading = false) }
             }
         }

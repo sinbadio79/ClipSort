@@ -23,5 +23,7 @@ interface ClipRepository {
 
     suspend fun updateStatus(clipId: Long, status: ClipStatus)
 
+    suspend fun updateComment(clipId: Long, comment: String?)
+
     suspend fun deleteClip(clipId: Long)
 }

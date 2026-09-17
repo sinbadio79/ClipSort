@@ -14,6 +14,12 @@ interface ClipDao {
     @Query("SELECT * FROM clips ORDER BY createdAt DESC, id DESC")
     fun observeAll(): Flow<List<ClipEntity>>
 
+    @Query("UPDATE clips SET comment = :comment WHERE id = :clipId")
+    suspend fun updateComment(clipId: Long, comment: String?)
+
+    @Query("UPDATE clips SET status = :status WHERE id = :clipId")
+    suspend fun updateStatus(clipId: Long, status: String)
+
     @Query("SELECT * FROM clips WHERE categoryId = :categoryId ORDER BY createdAt DESC")
     fun observeByCategory(categoryId: Long): Flow<List<ClipEntity>>
 

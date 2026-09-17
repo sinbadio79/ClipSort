@@ -51,8 +51,9 @@ class RepositoryIntegrationTest {
         val two = clips.saveClip("https://youtu.be/two", SourceApp.YOUTUBE, second.id, null)
         assertThat(clips.observeAllClips().first()).containsExactly(one, two)
         clips.updateStatus(one.id, ClipStatus.WATCHED)
+        clips.updateComment(one.id, "À refaire")
         clips.deleteClip(two.id)
-        assertThat(clips.observeAllClips().first()).containsExactly(one.copy(status = ClipStatus.WATCHED))
+        assertThat(clips.observeAllClips().first()).containsExactly(one.copy(status = ClipStatus.WATCHED, comment = "À refaire"))
     }
 
     @Test

@@ -2,6 +2,8 @@ package com.clipsort.app.presentation
 
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.content.ContentValues
+import android.provider.MediaStore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalConfiguration
@@ -14,7 +16,6 @@ import com.clipsort.app.domain.model.*
 import com.clipsort.app.presentation.library.LibraryContent
 import com.clipsort.app.presentation.library.LibraryUiState
 import com.clipsort.app.presentation.theme.ClipSortTheme
-import java.io.File
 import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -60,13 +61,26 @@ class LibraryScreenTest {
 
     private fun captureScreen(name: String) {
         compose.waitForIdle()
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val directory = instrumentation.targetContext.getExternalFilesDir("screenshots")!!
-        directory.mkdirs()
-        val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
-        File(directory, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-        bitmap.recycle()
+        saveScreenCapture(name)
     }
+}
+
+fun saveScreenCapture(name: String) {
+    val instrumentation = InstrumentationRegistry.getInstrumentation()
+    val resolver = instrumentation.targetContext.contentResolver
+    val values = ContentValues().apply {
+        put(MediaStore.Images.Media.DISPLAY_NAME, "$name.png")
+        put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ClipSortScreenshots")
+        put(MediaStore.Images.Media.IS_PENDING, 1)
+    }
+    val uri = requireNotNull(resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values))
+    val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+    requireNotNull(resolver.openOutputStream(uri)).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    bitmap.recycle()
+    values.clear()
+    values.put(MediaStore.Images.Media.IS_PENDING, 0)
+    resolver.update(uri, values, null, null)
 }
 
 @Composable

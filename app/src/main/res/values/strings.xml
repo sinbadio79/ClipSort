@@ -55,6 +55,7 @@
     <string name="add_subtitle">Un endroit pour la retrouver, une note pour se souvenir.</string>
     <string name="choose_collection">Choisir une collection</string>
     <string name="clip_note">Pourquoi garder ce clip ?</string>
+    <string name="edit_note">Modifier la note</string>
     <string name="clip_note_hint">Une recette à tester, une idée pour demain…</string>
     <string name="save_clip">Enregistrer le clip</string>
     <string name="saving">Enregistrement…</string>

@@ -42,9 +42,10 @@ class ClipRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateStatus(clipId: Long, status: ClipStatus) {
-        val entity = clipDao.getById(clipId) ?: return
-        clipDao.update(entity.copy(status = status.name))
+        clipDao.updateStatus(clipId, status.name)
     }
+
+    override suspend fun updateComment(clipId: Long, comment: String?) = clipDao.updateComment(clipId, comment)
 
     override suspend fun deleteClip(clipId: Long) {
         val entity = clipDao.getById(clipId) ?: return

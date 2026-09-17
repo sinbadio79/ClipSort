@@ -36,7 +36,9 @@ fun ClipSortNavHost(navController: NavHostController = rememberNavController()) 
             route = Routes.CATEGORY_DETAIL,
             arguments = listOf(navArgument(Routes.CATEGORY_ID_ARG) { type = NavType.LongType })
         ) {
-            CategoryDetailScreen(onBack = { navController.popBackStack() })
+            CategoryDetailScreen(onBack = { navController.popBackStack() }, onBrowseAll = {
+                navController.navigate("clips") { popUpTo(Routes.LIBRARY); launchSingleTop = true }
+            })
         }
     }
 }

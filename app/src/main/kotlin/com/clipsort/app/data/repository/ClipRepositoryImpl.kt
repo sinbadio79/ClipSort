@@ -17,6 +17,9 @@ class ClipRepositoryImpl @Inject constructor(
     private val clipDao: ClipDao
 ) : ClipRepository {
 
+    override fun observeAllClips(): Flow<List<Clip>> =
+        clipDao.observeAll().map { entities -> entities.map { it.toDomain() } }
+
     override fun observeClipsByCategory(categoryId: Long): Flow<List<Clip>> =
         clipDao.observeByCategory(categoryId).map { entities -> entities.map { it.toDomain() } }
 

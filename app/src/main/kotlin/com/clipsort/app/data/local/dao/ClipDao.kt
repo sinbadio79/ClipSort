@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ClipDao {
 
+    @Query("SELECT * FROM clips ORDER BY createdAt DESC, id DESC")
+    fun observeAll(): Flow<List<ClipEntity>>
+
     @Query("SELECT * FROM clips WHERE categoryId = :categoryId ORDER BY createdAt DESC")
     fun observeByCategory(categoryId: Long): Flow<List<ClipEntity>>
 

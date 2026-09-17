@@ -3,6 +3,7 @@ package com.clipsort.app.presentation
 import androidx.compose.runtime.*
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.clipsort.app.domain.model.ClipStatus
 import com.clipsort.app.domain.usecase.ClipFilter
@@ -33,7 +34,7 @@ class ClipsScreenTest {
         compose.onNodeWithTag("status-watched").performClick()
         compose.onNodeWithTag("clip-1").assertDoesNotExist()
         compose.onNodeWithTag("reset-filters").performScrollTo().performClick()
-        compose.onNodeWithTag("clip-search").assertTextContains("")
+        assertEquals("", compose.onNodeWithTag("clip-search").fetchSemanticsNode().config[SemanticsProperties.EditableText].text)
         compose.onNodeWithTag("status-all").assertIsSelected()
         compose.onNodeWithTag("clip-1").assertExists()
     }
@@ -55,7 +56,7 @@ class ClipsScreenTest {
         compose.onNodeWithTag("share-1").performClick()
         compose.runOnIdle { assertEquals(1L, shared) }
         compose.onNodeWithTag("options-1").performClick()
-        compose.onNodeWithText("Modifier la note").performClick()
+        compose.onNodeWithTag("edit-clip-1").performClick()
         compose.runOnIdle { assertEquals(1L, edited) }
     }
 

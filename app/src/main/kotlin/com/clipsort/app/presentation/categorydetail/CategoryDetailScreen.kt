@@ -189,7 +189,7 @@ private fun ClipCard(clip: Clip, categoryName: String, busy: Boolean, onOpen: ()
                 Box {
                     IconButton(onClick = { showMenu = true }, enabled = !busy, modifier = Modifier.testTag("options-${clip.id}")) { Icon(Icons.Default.MoreVert, stringResource(R.string.clip_options)) }
                     DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                        DropdownMenuItem(text = { Text(stringResource(R.string.edit_note)) }, onClick = { showMenu = false; onEdit() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.edit_note)) }, onClick = { showMenu = false; onEdit() }, modifier = Modifier.testTag("edit-clip-${clip.id}"))
                         DropdownMenuItem(text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }, onClick = { showMenu = false; onDelete() })
                     }
                 }

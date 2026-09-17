@@ -25,7 +25,7 @@ object DatabaseModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DATABASE_NAME)
-            .fallbackToDestructiveMigration() // acceptable en phase MVP, à retirer avant une v2 avec données à préserver
+            // Missing migrations must fail instead of deleting the user's library.
             .build()
 
     @Provides

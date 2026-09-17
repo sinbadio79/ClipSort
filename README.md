@@ -24,19 +24,44 @@ entité Room. La conversion se fait exclusivement dans `data/mapper/EntityMapper
 - [x] Repositories concrets + module Hilt
 - [x] Écrans Compose : catégorisation (bottom sheet de partage), bibliothèque, détail de catégorie
 - [x] Tests unitaires de démonstration sur la couche domain (JUnit + MockK + Truth)
-- [ ] Gestion des catégories (renommer/supprimer/fusionner) — écran à construire
-- [x] Pipeline CI (GitHub Actions) : tests + build APK debug à chaque push sur `main`
+- [x] Renommage et suppression des catégories (fusion non implémentée)
+- [x] CI GitHub Actions à chaque push : tests domain et intégration Room, lint, builds debug et release R8
+- [x] Schéma Room v1 versionné ; absence de migration explicite = erreur, jamais effacement automatique
+
+L'audit et la direction KMP/SwiftUI + Supabase validée sont documentés dans
+[docs/production-audit.md](docs/production-audit.md). Ces composants ne sont pas
+encore implémentés. La v1 reste une application Android locale.
 
 ## Build local
 
-Nécessite Android Studio (Koala ou plus récent) avec JDK 17.
+Nécessite JDK 17 et Android SDK 35. Le Wrapper télécharge Gradle 8.9 avec
+vérification SHA-256. Android Studio est facultatif pour la ligne de commande.
 
 ```
-./gradlew assembleDebug
-./gradlew test
+./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
 ```
 
 L'APK debug est généré dans `app/build/outputs/apk/debug/`.
+Sous Windows, utiliser `./gradlew.bat`. Configurer `ANDROID_HOME` ou `sdk.dir`
+dans un fichier `local.properties` non versionné.
+
+La compilation et les tests de ce chantier sont exécutés sur GitHub Actions.
+Les artefacts `verification-reports` contiennent les résultats JUnit, le lint et
+les schémas Room ; `clipsort-debug-apk` contient l'APK installable de développement.
+Sur push et lancement manuel, `clipsort-release-apk` contient la release R8 signée
+avec une clé stable conservée dans GitHub Secrets, son checksum et le rapport de
+signature. Les PR vérifient une release non signée. Voir [signature et sauvegarde](docs/signing.md).
+Les tests Room
+utilisent Robolectric avec SQLite ; ils ne remplacent pas les tests UI sur appareil.
+
+### Évolution de la base de données
+
+Le schéma v1 dans `app/schemas/` est généré par Room, pas écrit à la main.
+Pour modifier la structure : incrémenter la version, ajouter une migration explicite,
+tester la conservation des données depuis chaque version distribuée et versionner
+le nouveau schéma généré. Ne pas réécrire les anciens schémas. La CI refuse un
+schéma généré non versionné. Aucun changement de structure n'est introduit dans
+ce premier incrément, donc aucune migration v1 → v2 n'est encore nécessaire.
 
 ## Mise en ligne sur GitHub
 

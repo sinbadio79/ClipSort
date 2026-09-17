@@ -74,3 +74,50 @@ jobs:
           name: clipsort-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Transmettre la release au job de signature
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v6
+        with:
+          name: clipsort-release-unsigned
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  sign-release:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout du certificat public et du script de signature
+        uses: actions/checkout@v5
+
+      - name: Configuration JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Installer les outils de signature Android
+        run: $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
+
+      - name: Récupérer la release vérifiée
+        uses: actions/download-artifact@v6
+        with:
+          name: clipsort-release-unsigned
+          path: unsigned-release
+
+      - name: Signer et vérifier le certificat stable
+        env:
+          CLIPSORT_RELEASE_KEYSTORE_BASE64: ${{ secrets.CLIPSORT_RELEASE_KEYSTORE_BASE64 }}
+          CLIPSORT_RELEASE_STORE_PASSWORD: ${{ secrets.CLIPSORT_RELEASE_STORE_PASSWORD }}
+        run: bash scripts/sign-release.sh unsigned-release/app-release-unsigned.apk signed-release/clipsort-release.apk
+
+      - name: Publier la release signée
+        uses: actions/upload-artifact@v6
+        with:
+          name: clipsort-release-apk
+          path: signed-release/
+          if-no-files-found: error
+          retention-days: 30

@@ -48,7 +48,10 @@ dans un fichier `local.properties` non versionné.
 La compilation et les tests de ce chantier sont exécutés sur GitHub Actions.
 Les artefacts `verification-reports` contiennent les résultats JUnit, le lint et
 les schémas Room ; `clipsort-debug-apk` contient l'APK installable de développement.
-La release vérifie R8 mais n'est pas signée pour publication. Les tests Room
+Sur push et lancement manuel, `clipsort-release-apk` contient la release R8 signée
+avec une clé stable conservée dans GitHub Secrets, son checksum et le rapport de
+signature. Les PR vérifient une release non signée. Voir [signature et sauvegarde](docs/signing.md).
+Les tests Room
 utilisent Robolectric avec SQLite ; ils ne remplacent pas les tests UI sur appareil.
 
 ### Évolution de la base de données

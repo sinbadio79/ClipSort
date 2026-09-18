@@ -22,15 +22,25 @@ entité Room. La conversion se fait exclusivement dans `data/mapper/EntityMapper
 - [x] Use cases : détection de source, création de catégorie, sauvegarde de clip, lecture bibliothèque
 - [x] Persistance Room (entities, DAO, base de données)
 - [x] Repositories concrets + module Hilt
-- [x] Écrans Compose : catégorisation (bottom sheet de partage), bibliothèque, détail de catégorie
-- [x] Tests unitaires de démonstration sur la couche domain (JUnit + MockK + Truth)
+- [x] Quatre écrans Compose : accueil, tous les clips, collection, feuille de partage
+- [x] Thèmes clair/sombre, ressources d'interface FR/EN, actions accessibles sans appui long
+- [x] Recherche multi-mots dans notes, liens, sources et noms de collections
+- [x] Filtres combinés source/statut, tri chronologique, compteurs actualisés par Room
+- [x] Ouverture de vidéo, partage du lien, édition de note, statut vu/à voir, suppression confirmée
+- [x] Extraction du lien partagé, sessions de partage indépendantes, protection contre les doubles clics
+- [x] Tests domain, ViewModel, liens et intégration Room (JUnit, MockK, Robolectric)
 - [x] Renommage et suppression des catégories (fusion non implémentée)
-- [x] CI GitHub Actions à chaque push : tests domain et intégration Room, lint, builds debug et release R8
+- [x] CI GitHub Actions à chaque push : tests, lint, builds debug/release R8, tests UI sur émulateur Android 35
+- [x] Release signée avec la même clé privée à chaque build CI, certificat vérifié
 - [x] Schéma Room v1 versionné ; absence de migration explicite = erreur, jamais effacement automatique
 
 L'audit et la direction KMP/SwiftUI + Supabase validée sont documentés dans
 [docs/production-audit.md](docs/production-audit.md). Ces composants ne sont pas
 encore implémentés. La v1 reste une application Android locale.
+La direction visuelle, les parcours et les limites sont documentés dans
+[docs/interface.md](docs/interface.md). La recherche actuelle filtre en mémoire ;
+ce n'est pas encore un index SQLite FTS. Tags, doublons persistants, miniatures vidéo
+réelles, IA, rappels, widgets, achats et exports restent à développer.
 
 ## Build local
 
@@ -40,6 +50,11 @@ vérification SHA-256. Android Studio est facultatif pour la ligne de commande.
 ```
 ./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
 ```
+
+Avec un émulateur Android 35 démarré : `./gradlew connectedDebugAndroidTest`.
+La CI conserve rapports et captures Compose dans `android-ui-verification`.
+Les données illustrées sont uniquement des fixtures des tests ; une installation
+réelle affiche votre bibliothèque locale, vide au premier lancement.
 
 L'APK debug est généré dans `app/build/outputs/apk/debug/`.
 Sous Windows, utiliser `./gradlew.bat`. Configurer `ANDROID_HOME` ou `sdk.dir`
@@ -51,8 +66,9 @@ les schémas Room ; `clipsort-debug-apk` contient l'APK installable de développ
 Sur push et lancement manuel, `clipsort-release-apk` contient la release R8 signée
 avec une clé stable conservée dans GitHub Secrets, son checksum et le rapport de
 signature. Les PR vérifient une release non signée. Voir [signature et sauvegarde](docs/signing.md).
-Les tests Room
-utilisent Robolectric avec SQLite ; ils ne remplacent pas les tests UI sur appareil.
+Les tests Room utilisent Robolectric avec SQLite. Les tests instrumentés couvrent
+aussi l'activité de partage réelle, Hilt et la persistance sur l'émulateur.
+Les tests UI doivent réussir avant que le job de signature puisse démarrer.
 
 ### Évolution de la base de données
 

@@ -17,5 +17,6 @@ data class CategorizeUiState(
     val errorMessage: String? = null,
     val isSaved: Boolean = false,
     val isCreatingCategory: Boolean = false,
+    val isSubmittingCategory: Boolean = false,
     val newCategoryName: String = ""
 )

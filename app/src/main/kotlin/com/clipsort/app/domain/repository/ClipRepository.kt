@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.Flow
  */
 interface ClipRepository {
 
+    fun observeAllClips(): Flow<List<Clip>>
+
     fun observeClipsByCategory(categoryId: Long): Flow<List<Clip>>
 
     suspend fun saveClip(
@@ -20,6 +22,8 @@ interface ClipRepository {
     ): Clip
 
     suspend fun updateStatus(clipId: Long, status: ClipStatus)
+
+    suspend fun updateComment(clipId: Long, comment: String?)
 
     suspend fun deleteClip(clipId: Long)
 }

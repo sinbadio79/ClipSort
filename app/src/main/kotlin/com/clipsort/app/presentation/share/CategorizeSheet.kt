@@ -1,39 +1,25 @@
 package com.clipsort.app.presentation.share
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.clipsort.app.domain.model.Category
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.clipsort.app.R
+import com.clipsort.app.presentation.common.SourceTile
+import com.clipsort.app.presentation.common.sharedHttpUrl
+import com.clipsort.app.presentation.common.sourceLabel
 
-/**
- * Bottom sheet affichée au-dessus de l'app source lors d'un partage.
- * Composant "pauvre" : toute la logique vit dans le ViewModel, ce composable ne fait
- * qu'observer l'état et remonter les intentions utilisateur.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategorizeSheet(
@@ -41,115 +27,105 @@ fun CategorizeSheet(
     onDismiss: () -> Unit,
     viewModel: CategorizeViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val url = remember(sharedText) { sharedHttpUrl(sharedText).orEmpty() }
+    LaunchedEffect(url) { viewModel.onSharedTextReceived(url) }
+    LaunchedEffect(state.isSaved) { if (state.isSaved) onDismiss() }
 
-    LaunchedEffect(sharedText) {
-        viewModel.onSharedTextReceived(sharedText)
-    }
-
-    LaunchedEffect(uiState.isSaved) {
-        if (uiState.isSaved) onDismiss()
-    }
-
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "Ajouter à ClipSort",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Text(
-                text = "Catégorie",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            if (uiState.isCreatingCategory) {
-                NewCategoryForm(
-                    name = uiState.newCategoryName,
-                    onNameChanged = viewModel::onNewCategoryNameChanged,
-                    onConfirm = viewModel::onConfirmCreateCategory,
-                    onCancel = viewModel::onCancelCreateCategory
-                )
-            } else {
-                CategoryChipRow(
-                    categories = uiState.categories,
-                    selectedCategoryId = uiState.selectedCategoryId,
-                    onCategorySelected = viewModel::onCategorySelected,
-                    onAddCategoryClicked = viewModel::onCreateCategoryClicked
-                )
-            }
-
-            OutlinedTextField(
-                value = uiState.comment,
-                onValueChange = viewModel::onCommentChanged,
-                label = { Text("Petit commentaire (optionnel)") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            uiState.errorMessage?.let { message ->
-                Text(text = message, color = MaterialTheme.colorScheme.error)
-            }
-
-            Button(
-                onClick = viewModel::onSaveClicked,
-                enabled = !uiState.isSaving && !uiState.isCreatingCategory,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(if (uiState.isSaving) "Enregistrement…" else "Enregistrer")
-            }
-        }
-    }
-}
-
-@Composable
-private fun NewCategoryForm(
-    name: String,
-    onNameChanged: (String) -> Unit,
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
-            value = name,
-            onValueChange = onNameChanged,
-            label = { Text("Nom de la catégorie") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        CategorizeContent(
+            state = state,
+            onCategorySelected = viewModel::onCategorySelected,
+            onCommentChanged = viewModel::onCommentChanged,
+            onCreateCategory = viewModel::onCreateCategoryClicked,
+            onCategoryNameChanged = viewModel::onNewCategoryNameChanged,
+            onConfirmCategory = viewModel::onConfirmCreateCategory,
+            onCancelCategory = viewModel::onCancelCreateCategory,
+            onSave = viewModel::onSaveClicked
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextButton(onClick = onCancel) { Text("Annuler") }
-            Button(onClick = onConfirm, enabled = name.isNotBlank()) { Text("Créer") }
-        }
     }
 }
 
+/** Stateless share surface: reusable in instrumented tests without fake application data. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CategoryChipRow(
-    categories: List<Category>,
-    selectedCategoryId: Long?,
+fun CategorizeContent(
+    state: CategorizeUiState,
     onCategorySelected: (Long) -> Unit,
-    onAddCategoryClicked: () -> Unit
+    onCommentChanged: (String) -> Unit,
+    onCreateCategory: () -> Unit,
+    onCategoryNameChanged: (String) -> Unit,
+    onConfirmCategory: () -> Unit,
+    onCancelCategory: () -> Unit,
+    onSave: () -> Unit
 ) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(categories, key = { it.id }) { category ->
-            FilterChip(
-                selected = category.id == selectedCategoryId,
-                onClick = { onCategorySelected(category.id) },
-                label = { Text(category.name) }
-            )
-        }
-        item {
-            IconButton(onClick = onAddCategoryClicked) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Nouvelle catégorie")
+    val busy = state.isSaving || state.isSubmittingCategory
+    Column(
+        Modifier.fillMaxWidth().imePadding().verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 12.dp).testTag("share-content"),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(stringResource(R.string.add_title), style = MaterialTheme.typography.headlineLarge)
+        Text(stringResource(R.string.add_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.large) {
+            Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                SourceTile(state.detectedSource, Modifier.size(64.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(sourceLabel(state.detectedSource), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        state.sharedUrl.ifBlank { stringResource(R.string.invalid_shared_link) },
+                        Modifier.testTag("shared-url"), maxLines = 2, overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
+        Text(stringResource(R.string.choose_collection), style = MaterialTheme.typography.titleMedium)
+        if (state.isCreatingCategory) {
+            OutlinedTextField(
+                state.newCategoryName, onCategoryNameChanged,
+                Modifier.fillMaxWidth().testTag("share-category-name"), enabled = !busy,
+                label = { Text(stringResource(R.string.collection_name)) }, singleLine = true
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onCancelCategory, enabled = !busy) { Text(stringResource(R.string.cancel)) }
+                Button(onConfirmCategory, enabled = !busy && state.newCategoryName.isNotBlank()) {
+                    Text(stringResource(if (state.isSubmittingCategory) R.string.saving else R.string.create))
+                }
+            }
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.categories.forEach { category ->
+                    FilterChip(
+                        selected = category.id == state.selectedCategoryId,
+                        onClick = { onCategorySelected(category.id) }, enabled = !busy,
+                        label = { Text(category.name) }, modifier = Modifier.testTag("share-category-${category.id}")
+                    )
+                }
+                AssistChip(
+                    onClick = onCreateCategory, enabled = !busy,
+                    label = { Text(stringResource(R.string.new_collection)) },
+                    leadingIcon = { Icon(Icons.Default.Add, null) },
+                    modifier = Modifier.testTag("share-new-category")
+                )
+            }
+        }
+        OutlinedTextField(
+            state.comment, onCommentChanged, Modifier.fillMaxWidth().testTag("share-note"),
+            enabled = !busy, label = { Text(stringResource(R.string.clip_note)) },
+            placeholder = { Text(stringResource(R.string.clip_note_hint)) }, minLines = 2, maxLines = 4
+        )
+        if (state.errorMessage != null) {
+            Text(stringResource(R.string.action_failed), color = MaterialTheme.colorScheme.error)
+        }
+        Button(
+            onClick = onSave,
+            enabled = !busy && !state.isSaved && !state.isCreatingCategory && state.selectedCategoryId != null && state.sharedUrl.isNotBlank(),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("share-save")
+        ) { Text(stringResource(if (state.isSaving) R.string.saving else R.string.save_clip)) }
+        Spacer(Modifier.height(12.dp))
     }
 }

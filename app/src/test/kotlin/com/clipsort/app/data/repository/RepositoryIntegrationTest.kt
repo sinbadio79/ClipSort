@@ -44,6 +44,19 @@ class RepositoryIntegrationTest {
     }
 
     @Test
+    fun `all clips combines categories and reflects status changes and deletion`() = runTest {
+        val first = categories.createCategory("Cuisine", "#378ADD")
+        val second = categories.createCategory("Sport", "#639922")
+        val one = clips.saveClip("https://youtu.be/one", SourceApp.YOUTUBE, first.id, null)
+        val two = clips.saveClip("https://youtu.be/two", SourceApp.YOUTUBE, second.id, null)
+        assertThat(clips.observeAllClips().first()).containsExactly(one, two)
+        clips.updateStatus(one.id, ClipStatus.WATCHED)
+        clips.updateComment(one.id, "À refaire")
+        clips.deleteClip(two.id)
+        assertThat(clips.observeAllClips().first()).containsExactly(one.copy(status = ClipStatus.WATCHED, comment = "À refaire"))
+    }
+
+    @Test
     fun `library survives closing and reopening the database`() = runTest {
         val category = categories.createCategory("Cuisine", "#378ADD")
         val clip = clips.saveClip("https://youtu.be/example", SourceApp.YOUTUBE, category.id, "Pâtes")

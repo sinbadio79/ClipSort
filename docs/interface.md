@@ -46,6 +46,8 @@ Deux tests complémentaires ouvrent la véritable ShareReceiverActivity avec Hil
 et Room : persistance du lien extrait et de la note, puis réception d'un deuxième
 partage sans conservation de l'ancienne saisie. Les doubles clics d'enregistrement
 et de création de collection sont couverts par les tests de ViewModel.
+Un test de MainActivity parcourt accueil → collection → tous les clips → accueil,
+puis vérifie la conservation du filtre après recréation de l'activité.
 
 Les contrôles UI bloquent la signature release. Les contrôles domain/data, lint,
 debug, release R8 et vérification de schéma restent actifs. Les captures automatisées

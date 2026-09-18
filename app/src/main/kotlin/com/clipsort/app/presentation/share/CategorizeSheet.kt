@@ -70,7 +70,7 @@ fun CategorizeContent(
     ) {
         Text(stringResource(R.string.add_title), style = MaterialTheme.typography.headlineLarge)
         Text(stringResource(R.string.add_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.large) {
+        Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.large) {
             Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 SourceTile(state.detectedSource, Modifier.size(64.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {

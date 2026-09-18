@@ -26,11 +26,12 @@ class ShareReceiverTest {
     @get:Rule val compose = createEmptyComposeRule()
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
-    @Before fun seedDatabase() = runBlocking(Dispatchers.IO) {
+    @Before fun seedDatabase(): Unit = runBlocking(Dispatchers.IO) {
         val db = DatabaseModule.provideAppDatabase(context)
         try {
             db.clearAllTables()
             db.categoryDao().insert(CategoryEntity(1, "Cuisine", "#417F71", 1))
+            Unit
         } finally { db.close() }
     }
 

@@ -2,6 +2,7 @@ package com.clipsort.app.presentation
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.test.*
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -27,7 +28,7 @@ class ClipsScreenTest {
             }
         }
         compose.waitForIdle()
-        saveScreenCapture("02-all-clips")
+        saveScreenCapture("02-all-clips", compose.onRoot().captureToImage().asAndroidBitmap())
         compose.onNodeWithTag("clip-search").performTextInput("citron")
         compose.onNodeWithTag("clip-1").assertExists()
         compose.onNodeWithTag("clip-2").assertDoesNotExist()
@@ -69,7 +70,7 @@ class ClipsScreenTest {
         }
         compose.onNodeWithTag("clip-2").assertDoesNotExist()
         compose.waitForIdle()
-        saveScreenCapture("03-collection")
+        saveScreenCapture("03-collection", compose.onRoot().captureToImage().asAndroidBitmap())
     }
 
     private fun state(filter: ClipFilter = ClipFilter()) = CategoryDetailUiState(

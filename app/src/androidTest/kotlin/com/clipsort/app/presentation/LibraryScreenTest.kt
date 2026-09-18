@@ -9,6 +9,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.*
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -61,11 +62,11 @@ class LibraryScreenTest {
 
     private fun captureScreen(name: String) {
         compose.waitForIdle()
-        saveScreenCapture(name)
+        saveScreenCapture(name, compose.onRoot().captureToImage().asAndroidBitmap())
     }
 }
 
-fun saveScreenCapture(name: String) {
+fun saveScreenCapture(name: String, bitmap: Bitmap) {
     val instrumentation = InstrumentationRegistry.getInstrumentation()
     val resolver = instrumentation.targetContext.contentResolver
     val values = ContentValues().apply {
@@ -75,7 +76,6 @@ fun saveScreenCapture(name: String) {
         put(MediaStore.Images.Media.IS_PENDING, 1)
     }
     val uri = requireNotNull(resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values))
-    val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
     requireNotNull(resolver.openOutputStream(uri)).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     bitmap.recycle()
     values.clear()

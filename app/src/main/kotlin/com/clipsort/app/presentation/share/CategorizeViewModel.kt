@@ -63,7 +63,9 @@ class CategorizeViewModel @Inject constructor(
     }
 
     fun onConfirmCreateCategory() {
+        if (_uiState.value.isSubmittingCategory || _uiState.value.isSaving) return
         val name = _uiState.value.newCategoryName
+        _uiState.update { it.copy(isSubmittingCategory = true) }
         viewModelScope.launch {
             createCategoryUseCase(name)
                 .onSuccess { category ->
@@ -71,17 +73,19 @@ class CategorizeViewModel @Inject constructor(
                         it.copy(
                             selectedCategoryId = category.id,
                             isCreatingCategory = false,
+                            isSubmittingCategory = false,
                             newCategoryName = "",
                             errorMessage = null
                         )
                     }
                 }
-                .onFailure { error -> _uiState.update { it.copy(errorMessage = error.message) } }
+                .onFailure { error -> _uiState.update { it.copy(isSubmittingCategory = false, errorMessage = error.message) } }
         }
     }
 
     fun onSaveClicked() {
         val currentState = _uiState.value
+        if (currentState.isSaving || currentState.isSaved || currentState.isCreatingCategory || currentState.sharedUrl.isBlank()) return
         val categoryId = currentState.selectedCategoryId
 
         if (categoryId == null) {
@@ -89,8 +93,8 @@ class CategorizeViewModel @Inject constructor(
             return
         }
 
+        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, errorMessage = null) }
 
             saveClipUseCase(
                 url = currentState.sharedUrl,
